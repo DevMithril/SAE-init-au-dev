@@ -24,8 +24,8 @@ void load_from_csv(const char *file_path, Tab_Cities *tab)
 {
     FILE *csv = NULL;
     City *new_city = NULL;
+    City tmp;
     int nb_of_scan;
-    size_t old_size = 0;
 
     if (tab->cities != NULL)
     {
@@ -43,20 +43,12 @@ void load_from_csv(const char *file_path, Tab_Cities *tab)
     fscanf(csv, "CODE,VILLE,LATITUDE,LONGITUDE");
     do
     {
-        printf("lol\n");
-        tab->cities = realloc(tab->cities, old_size + sizeof(City));
-        if (old_size == sizeof(tab->cities))
-        {
-            printf("Fatal Error : out of memory\n");
-            free(tab->cities);
-            fclose(csv);
-            exit(EXIT_FAILURE);
-        }
+        tab->cities = realloc(tab->cities, sizeof(tab->cities) + sizeof(City));
         tab->nb_cities += 1;
-        old_size += sizeof(City);
         new_city = &tab->cities[tab->nb_cities - 1];
         nb_of_scan = fscanf(csv, "%d,%[^,],%f,%f", &new_city->code, new_city->name, &new_city->latitude, &new_city->longitude);
     } while (nb_of_scan != EOF);
+    tab->nb_cities -= 1;
     fclose(csv);
 }
 
@@ -69,15 +61,8 @@ void save_csv(const char *file_path, Tab_Cities *tab)
 void add_city(Tab_Cities *tab)
 {
     City *new_city = NULL;
-    size_t old_size = sizeof(tab->cities);
     printf("Veuillez renseigner les données de la ville à ajouter (format 'code nom latitude longitude')\n");
-    tab->cities = realloc(tab->cities, old_size + sizeof(City));
-    if (old_size == sizeof(tab->cities))
-    {
-        printf("Fatal Error : out of memory\n");
-        free(tab->cities);
-        exit(EXIT_FAILURE);
-    }
+    tab->cities = realloc(tab->cities, sizeof(tab->cities) + sizeof(City));
     tab->nb_cities += 1;
     new_city = &tab->cities[tab->nb_cities - 1];
     scanf("%d %s %f %f", &new_city->code, new_city->name, &new_city->latitude, &new_city->longitude);
