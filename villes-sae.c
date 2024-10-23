@@ -9,7 +9,7 @@ typedef struct City
 {
     int code;
     float latitude, longitude;
-    char name[80];
+    char name[85];
 }City;
 
 typedef struct Tab_Cities
@@ -23,16 +23,41 @@ typedef struct Tab_Cities
 void load_from_csv(const char *file_path, Tab_Cities *tab)
 {
     FILE *csv = NULL;
-    csv = fopen("cities.csv", "r");
-    if (csv != NULL)
+    City *new_city = NULL;
+    int nb_of_scan;
+    size_t old_size = 0;
+
+    if (tab->cities != NULL)
     {
-        tab->cities = realloc(tab->cities, sizeof(tab->cities)+sizeof(City));
+        free(tab->cities);
+    }
+    tab->nb_cities = 0;
+    
+    csv = fopen(file_path, "r");
+    if (csv == NULL)
+    {
+        printf("Error : can't open file '%s'\n", file_path);
+        exit(EXIT_FAILURE);
+    }
+    
+    fscanf(csv, "CODE,VILLE,LATITUDE,LONGITUDE");
+    do
+    {
+        printf("lol\n");
+        tab->cities = realloc(tab->cities, old_size + sizeof(City));
+        if (old_size == sizeof(tab->cities))
+        {
+            printf("Fatal Error : out of memory\n");
+            free(tab->cities);
+            fclose(csv);
+            exit(EXIT_FAILURE);
+        }
         tab->nb_cities += 1;
-    }
-    else
-    {
-        printf("Error : can't open file %s\n", file_path);
-    }
+        old_size += sizeof(City);
+        new_city = &tab->cities[tab->nb_cities - 1];
+        nb_of_scan = fscanf(csv, "%d,%[^,],%f,%f", &new_city->code, new_city->name, &new_city->latitude, &new_city->longitude);
+    } while (nb_of_scan != EOF);
+    fclose(csv);
 }
 
 void save_csv(const char *file_path, Tab_Cities *tab)
@@ -43,7 +68,19 @@ void save_csv(const char *file_path, Tab_Cities *tab)
 
 void add_city(Tab_Cities *tab)
 {
-    ;
+    City *new_city = NULL;
+    size_t old_size = sizeof(tab->cities);
+    printf("Veuillez renseigner les données de la ville à ajouter (format 'code nom latitude longitude')\n");
+    tab->cities = realloc(tab->cities, old_size + sizeof(City));
+    if (old_size == sizeof(tab->cities))
+    {
+        printf("Fatal Error : out of memory\n");
+        free(tab->cities);
+        exit(EXIT_FAILURE);
+    }
+    tab->nb_cities += 1;
+    new_city = &tab->cities[tab->nb_cities - 1];
+    scanf("%d %s %f %f", &new_city->code, new_city->name, &new_city->latitude, &new_city->longitude);
 }
 
 void del_city(Tab_Cities *tab)
@@ -58,7 +95,7 @@ void chg_city(Tab_Cities *tab)
 
 void print_cities(Tab_Cities *tab)
 {
-    printf("CODE / VILLE / Latitude / Longitude\n");
+    printf("CODE / VILLE / LATITUDE / LONGITUDE\n");
     for (int i = 0; i < tab->nb_cities; i++)
     {
         printf("%d / %s / %f / %f\n", tab->cities[i].code, tab->cities[i].name, tab->cities[i].latitude, tab->cities[i].longitude);
@@ -158,7 +195,8 @@ int main(void)
 
     while (!quit)
     {
-        scanf("%c", &command);
+        printf(">> ");
+        scanf(" %c", &command);
         execute_command(command, &quit, &tab_cities);
     }
 
