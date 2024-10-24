@@ -232,7 +232,7 @@ void show_help(void)
     printf("--------------------------------------------------------------\n");
 }
 
-bool execute_command(char cmd, bool *exit, City *list_cities)
+void execute_command(char cmd, bool *exit, City *list_cities)
 {
     switch (cmd)
     {
