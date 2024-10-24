@@ -79,6 +79,56 @@ void load_from_csv(const char *file_path, City *list)
     fclose(csv);
 }
 
+City *search_City(const char *city_name, City *list)
+{
+    City *current = list->next;
+    City *return_value = NULL;
+    bool found = false;
+    while (!found)
+    {
+        if (current == NULL)
+        {
+            printf("Nom de Ville invalide : saisissez 'p' pour afficher la liste des villes\n");
+            found = true;
+        }
+        else if (!(strcmp(city_name, current->name)))
+        {
+            return_value = current;
+            found = true;
+        }
+        else
+        {
+            current = current->next;
+        }
+    }
+    return return_value;
+}
+
+City *search_previous_City(const char *city_name, City *list)
+{
+    City *current = list;
+    City *return_value = NULL;
+    bool found = false;
+    while (!found)
+    {
+        if (current->next == NULL)
+        {
+            printf("Nom de Ville invalide : saisissez 'p' pour afficher la liste des villes\n");
+            found = true;
+        }
+        else if (!(strcmp(city_name, current->next->name)))
+        {
+            return_value = current;
+            found = true;
+        }
+        else
+        {
+            current = current->next;
+        }
+    }
+    return return_value;
+}
+
 void save_csv(const char *file_path, City *list)
 {
     FILE *csv = NULL;
@@ -106,33 +156,54 @@ void add_city(City *list)
 void del_city(City *list)
 {
     char input[85];
-    City *current = list->next;
-    bool found = false;
+    City *city_to_del = NULL;
     printf("Saisissez le Nom de la ville à supprimer : \n");
     scanf(" %[^\n]", input);
-    while (!found)
+    city_to_del = search_City(input, list);
+    if (city_to_del != NULL)
     {
-        if (current == NULL)
-        {
-            printf("Nom de Ville invalide : saisissez 'p' pour afficher la liste des villes\n");
-            found = true;
-        }
-        else if (!(strcmp(input, current->name)))
-        {
-            free_City(current, list);
-            printf("La Ville %s a bien été supprimée.\n", input);
-            found = true;
-        }
-        else
-        {
-            current = current->next;
-        }
+        free_City(city_to_del, list);
+        printf("La Ville %s a bien été supprimée.\n", input);
     }
 }
 
 void chg_city(City *list)
 {
-    ;
+    char input[85];
+    City *previous_city = NULL;
+    City *tmp = NULL;
+    printf("Saisissez le Nom de la ville à modifier : \n");
+    scanf(" %[^\n]", input);
+    previous_city = search_previous_City(input, list);
+    if (previous_city != NULL)
+    {
+        tmp = previous_city->next->next;
+        free(previous_city->next);
+        previous_city->next = malloc(sizeof(City));
+        if (previous_city->next == NULL)
+        {
+            printf("Error : out of memory\n");
+            previous_city->next = tmp;
+            free_Cities(list);
+            exit(EXIT_FAILURE);
+        }
+        printf("Veuillez renseigner les nouvelles données pour %s (format 'code nom latitude longitude')\n", input);
+        scanf("%d %s %f %f", &previous_city->next->code, previous_city->next->name, &previous_city->next->latitude, &previous_city->next->longitude);
+        printf("La Ville %s a bien été modifiée.\n", input);
+    }
+}
+
+void coord_city(City *list)
+{
+    char input[85];
+    City *city_to_aff = NULL;
+    printf("Saisissez le Nom de la ville dont vous souhaitez les coordonnées : \n");
+    scanf(" %[^\n]", input);
+    city_to_aff = search_City(input, list);
+    if (city_to_aff != NULL)
+    {
+        printf("%s se situe aux coordonnées lat : %f / long : %f .\n", input, city_to_aff->latitude, city_to_aff->longitude);
+    }
 }
 
 void print_cities(City *list)
@@ -192,6 +263,7 @@ bool execute_command(char cmd, bool *exit, City *list_cities)
         }
         case 'c':
         {
+            coord_city(list_cities);
             break;
         }
         case 'w':
