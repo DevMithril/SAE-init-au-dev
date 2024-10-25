@@ -42,16 +42,36 @@ void free_Cities(City *list)
     }
 }
 
+void create_city(int code, const char *name, float lat, float lng, City *end_of_list, City *list)
+{
+    City *last = list;
+    while (last->next != NULL)
+    {
+        last = last->next;
+    }
+    last->next = malloc(sizeof(City));
+    if (last->next == NULL)
+    {
+        printf("Error : out of memory\n");
+        last->next = end_of_list;
+        free_Cities(list);
+        exit(EXIT_FAILURE);
+    }
+    last = last->next;
+    last->code = code;
+    strcat(last->name, name);
+    last->latitude = lat;
+    last->longitude = lng;
+    last->next = end_of_list;
+}
+
 void load_from_csv(const char *file_path, City *list)
 {
     FILE *csv = NULL;
     City *current = NULL;
     int nb_of_scan;
 
-    if (list->next != NULL)
-    {
-        free_Cities(list);
-    }
+    free_Cities(list);
     current = list;
     
     csv = fopen(file_path, "r");
@@ -135,25 +155,16 @@ void save_csv(const char *file_path, City *list)
     free_Cities(list);
 }
 
-void add_city(City *list)
+void user_add_city(City *list)
 {
-    City *last = list;
-    while (last->next != NULL)
-    {
-        last = last->next;
-    }
+    City tmp;
     printf("Veuillez renseigner les données de la ville à ajouter (format 'code nom latitude longitude')\n");
-    last->next = malloc(sizeof(City));
-    if (last->next == NULL)
-    {
-        printf("Error : out of memory\n");
-        free_Cities(list);
-        exit(EXIT_FAILURE);
-    }
-    scanf("%d %s %f %f", &last->next->code, last->next->name, &last->next->latitude, &last->next->longitude);
+    scanf("%d %s %f %f", &tmp.code, tmp.name, &tmp.latitude, &tmp.longitude);
+    create_city(tmp.code, tmp.name, tmp.latitude, tmp.longitude, NULL, list);
+    printf("La Ville %s a bien été ajoutée.\n", tmp.name);
 }
 
-void del_city(City *list)
+void user_del_city(City *list)
 {
     char input[85];
     City *city_to_del = NULL;
@@ -167,33 +178,28 @@ void del_city(City *list)
     }
 }
 
-void chg_city(City *list)
+void user_chg_city(City *list)
 {
     char input[85];
     City *previous_city = NULL;
-    City *tmp = NULL;
+    City *end = NULL;
+    City tmp;
     printf("Saisissez le Nom de la ville à modifier : \n");
     scanf(" %[^\n]", input);
     previous_city = search_previous_City(input, list);
     if (previous_city != NULL)
     {
-        tmp = previous_city->next->next;
+        end = previous_city->next->next;
         free(previous_city->next);
-        previous_city->next = malloc(sizeof(City));
-        if (previous_city->next == NULL)
-        {
-            printf("Error : out of memory\n");
-            previous_city->next = tmp;
-            free_Cities(list);
-            exit(EXIT_FAILURE);
-        }
+        previous_city->next = NULL;
         printf("Veuillez renseigner les nouvelles données pour %s (format 'code nom latitude longitude')\n", input);
-        scanf("%d %s %f %f", &previous_city->next->code, previous_city->next->name, &previous_city->next->latitude, &previous_city->next->longitude);
+        scanf("%d %s %f %f", &tmp.code, tmp.name, &tmp.latitude, &tmp.longitude);
+        create_city(tmp.code, tmp.name, tmp.latitude, tmp.longitude, end, list);
         printf("La Ville %s a bien été modifiée.\n", input);
     }
 }
 
-void coord_city(City *list)
+void user_coord_city(City *list)
 {
     char input[85];
     City *city_to_aff = NULL;
@@ -202,7 +208,7 @@ void coord_city(City *list)
     city_to_aff = search_City(input, list);
     if (city_to_aff != NULL)
     {
-        printf("%s se situe aux coordonnées lat : %f / long : %f .\n", input, city_to_aff->latitude, city_to_aff->longitude);
+        printf("%s se situe aux coordonnées (lat / long) : %f / %f .\n", input, city_to_aff->latitude, city_to_aff->longitude);
     }
 }
 
@@ -248,22 +254,22 @@ void execute_command(char cmd, bool *exit, City *list_cities)
         }
         case 'a':
         {
-            add_city(list_cities);
+            user_add_city(list_cities);
             break;
         }
         case 's':
         {
-            del_city(list_cities);
+            user_del_city(list_cities);
             break;
         }
         case 'm':
         {
-            chg_city(list_cities);
+            user_chg_city(list_cities);
             break;
         }
         case 'c':
         {
-            coord_city(list_cities);
+            user_coord_city(list_cities);
             break;
         }
         case 'w':
