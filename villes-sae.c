@@ -135,7 +135,7 @@ void save_csv(const char *file_path, City *list) // writes data from a list onto
 {
     FILE *csv = NULL;
     City *current = list->next;
-    csv = fopen(file_path, "w");
+    csv = fopen(file_path, "w+");
     if (csv == NULL)
     {
         fprintf(stderr, "Error : can't open/create file '%s'\n", file_path);
