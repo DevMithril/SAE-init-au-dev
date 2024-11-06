@@ -4,7 +4,7 @@
 #include <string.h>
 #include <math.h>
 
-/* définitions des Constantes */
+// définitions des Constantes
 
 #define PI 3.14159265359
 #define R_TERRE 6371
@@ -13,7 +13,7 @@
 #define MAX_LEN_NAME 30
 #define MAX_LEN_LAT_LONG 11
 
-/* définitions des Types */
+// définitions des Types
 
 typedef struct City
 {
@@ -23,9 +23,10 @@ typedef struct City
     struct City *next;
 }City;
 
-/* définitions des Fonctions & Procédures */
+// définitions des Fonctions & Procédures
 
-void free_City(City *city, City *list) // retire la ville de la liste et déalloue la mémoire réservée pour la ville
+/* retire la ville de la liste et déalloue la mémoire réservée pour la ville */
+void free_City(City *city, City *list)
 {
     City *current = list;
     City *tmp = NULL;
@@ -43,15 +44,16 @@ void free_City(City *city, City *list) // retire la ville de la liste et déallo
     current->next = tmp; // réattachement de la fin de la liste
 }
 
-void free_Cities(City *list) // supprime toutes les villes de la liste
+/* supprime toutes les villes de la liste */
+void free_Cities(City *list)
 {
     while (list->next != NULL)
     {
         free_City(list->next, list);
     }
 }
-
-void create_city(const char *code, const char *name, float lat, float lng, City *end_of_list, City *list) // alloue un emplacement mémoire de la taille d'une ville et le remplit avec les données
+/* alloue un emplacement mémoire de la taille d'une ville et le remplit avec les données passées en paramètres */
+void create_city(const char *code, const char *name, float lat, float lng, City *end_of_list, City *list)
 {
     City *last = list;
     while (last->next != NULL) // obtention de la dernière ville de la liste
@@ -74,7 +76,8 @@ void create_city(const char *code, const char *name, float lat, float lng, City 
     last->next = end_of_list; // attachement de l'éventuelle fin de liste à la liste actuelle
 }
 
-void load_from_csv(const char *file_path, City *list) // charge dans une liste des données de villes issues d'un fichier csv
+/* charge dans une liste des données de villes issues d'un fichier csv */
+void load_from_csv(const char *file_path, City *list)
 {
     FILE *csv = NULL;
     City *current = NULL;
@@ -108,7 +111,8 @@ void load_from_csv(const char *file_path, City *list) // charge dans une liste d
     fclose(csv);
 }
 
-City *search_City(const char *city_name, bool searching_previous, City *list) // renvoie un pointeur vers la ville ayant le nom demandé ou celle qui précède si c'est demandé
+/* renvoie un pointeur vers la ville ayant le nom demandé ou celle qui précède si c'est demandé */
+City *search_City(const char *city_name, bool searching_previous, City *list)
 {
     City *current = list;
     City *return_value = NULL;
@@ -140,7 +144,8 @@ City *search_City(const char *city_name, bool searching_previous, City *list) //
     return return_value;
 }
 
-int distance_cities(float lat1, float long1, float lat2, float long2) // renvoie la distance qui sépare les deux emplacements dont les coordonnées sont fournies
+/* renvoie la distance qui sépare les deux emplacements dont les coordonnées sont fournies */
+int distance_cities(float lat1, float long1, float lat2, float long2)
 {
     float phi_1 = lat1 * PI / 180;
     float phi_2 = lat2 * PI / 180;
@@ -151,7 +156,8 @@ int distance_cities(float lat1, float long1, float lat2, float long2) // renvoie
     return 2*R_TERRE * asinf(sqrtf(powf(sinf(delta_phi / 2), 2) + cosf(phi_1) * cosf(phi_2) * powf(sinf(delta_lambda / 2), 2)));
 }
 
-void save_csv(const char *file_path, City *list) // écrit les données d'une liste de villes dans un fichier csv et supprime les données de la liste
+/* écrit les données d'une liste de villes dans un fichier csv et supprime les données de la liste */
+void save_csv(const char *file_path, City *list)
 {
     FILE *csv = NULL;
     City *current = list->next;
@@ -171,8 +177,8 @@ void save_csv(const char *file_path, City *list) // écrit les données d'une li
     fclose(csv);
     free_Cities(list);
 }
-
-void user_add_city(City *list) // demande à l'utilisateur la ville qu'il veut ajouter à la liste et l'ajoute
+/* demande à l'utilisateur la ville qu'il veut ajouter à la liste et l'ajoute */
+void user_add_city(City *list)
 {
     City tmp;
     printf("Veuillez renseigner le nom de la ville à ajouter : ");
@@ -185,7 +191,8 @@ void user_add_city(City *list) // demande à l'utilisateur la ville qu'il veut a
     printf("La Ville %s a bien été ajoutée.\n", tmp.name);
 }
 
-void user_del_city(City *list) // demande à l'utilisateur la ville qu'il veut supprimer de la liste et la supprime
+/* demande à l'utilisateur la ville qu'il veut supprimer de la liste et la supprime */
+void user_del_city(City *list)
 {
     char input[MAX_LEN_NAME];
     City *city_to_del = NULL;
@@ -199,7 +206,8 @@ void user_del_city(City *list) // demande à l'utilisateur la ville qu'il veut s
     }
 }
 
-void user_chg_city(City *list) // demande à l'utilisateur la ville qu'il veut modifier dans la liste et la modifie
+/* demande à l'utilisateur la ville qu'il veut modifier dans la liste et la modifie */
+void user_chg_city(City *list)
 {
     char input[MAX_LEN_NAME];
     City *previous_city = NULL;
@@ -227,7 +235,8 @@ void user_chg_city(City *list) // demande à l'utilisateur la ville qu'il veut m
     }
 }
 
-void user_coord_city(City *list) // demande à l'utilisateur la ville dont il veut obtenir les coordonnées et affiche ces coordonnées
+/* demande à l'utilisateur la ville dont il veut obtenir les coordonnées et affiche ces coordonnées */
+void user_coord_city(City *list)
 {
     char input[MAX_LEN_NAME];
     City *city_to_aff = NULL;
@@ -240,7 +249,8 @@ void user_coord_city(City *list) // demande à l'utilisateur la ville dont il ve
     }
 }
 
-void user_distance_min_cities(City *list) // demande à l'utilisateur les villes dont il veut connaitre la distance qui les sépare
+/* demande à l'utilisateur les villes dont il veut connaitre la distance qui les sépare */
+void user_distance_min_cities(City *list)
 {
     char city_name1[MAX_LEN_NAME], city_name2[MAX_LEN_NAME];
     City *city1 = NULL, *city2 = NULL;
@@ -263,7 +273,8 @@ void user_distance_min_cities(City *list) // demande à l'utilisateur les villes
     printf("La distance entre %s et %s est %d km.\n", city_name1, city_name2, dist);
 }
 
-void user_how_far_from_city(City *list) // demande à l'utilisateur ses coordonnées GPS et la ville dont il veu connaitre son éloignement
+/* demande à l'utilisateur ses coordonnées GPS et la ville dont il veu connaitre son éloignement */
+void user_how_far_from_city(City *list)
 {
     char city_name[MAX_LEN_NAME];
     float user_lat, user_long;
@@ -282,7 +293,8 @@ void user_how_far_from_city(City *list) // demande à l'utilisateur ses coordonn
     printf("La distance qui vous sépare de %s est %d km.\n", city_name, dist);
 }
 
-void print_cities(City *list) // affiche toutes les villes de la liste
+/* affiche toutes les villes de la liste */
+void print_cities(City *list)
 {
     City *current = list->next;
     char tmp[MAX_LEN_CODE];
@@ -319,7 +331,8 @@ void print_cities(City *list) // affiche toutes les villes de la liste
     printf("+-----------------+--------------------------------+-------------+-------------+\n");
 }
 
-void show_help(void) // affiche la liste des commandes possibles
+/* affiche la liste des commandes possibles */
+void show_help(void)
 {
     printf("--------------------------------------------------------------\n");
     printf("Commandes disponibles :\n");
@@ -336,7 +349,8 @@ void show_help(void) // affiche la liste des commandes possibles
     printf("--------------------------------------------------------------\n");
 }
 
-void execute_command(char cmd, bool *exit, const char *file_path, City *list_cities) // exécute la commande donnée
+/* exécute la commande donnée */
+void execute_command(char cmd, bool *exit, const char *file_path, City *list_cities)
 {
     switch (cmd)
     {
@@ -402,7 +416,7 @@ void execute_command(char cmd, bool *exit, const char *file_path, City *list_cit
     }
 }
 
-/* définition des Variables */
+// définition des Variables
 
 City list_cities;
 char csv_file_name[MAX_LEN_CSV_FILENAME];
@@ -410,7 +424,6 @@ char command;
 bool quit;
 
 /* Fonction principale */
-
 int main(void)
 {
     // initialisation des variables
