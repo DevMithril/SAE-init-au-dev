@@ -35,7 +35,7 @@ void free_City(City *city, City *list)
         fprintf(stderr, "Error : invalid 'city' argument for 'free_City', proceed anyway\n");
         return;
     }
-    while (current->next != city) // obtention de al ville précédant celle à supprimer
+    while (current->next != city) // obtention de la ville précédant celle à supprimer
     {
         current = current->next;
     }
