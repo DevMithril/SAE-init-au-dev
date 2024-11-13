@@ -376,7 +376,7 @@ void user_distance_min_cities(City *list)
     printf("La distance entre %s et %s est %d km.\n", city_name1, city_name2, dist);
 }
 
-/* demande à l'utilisateur ses coordonnées GPS et la ville dont il veu connaitre son éloignement */
+/* demande à l'utilisateur ses coordonnées GPS et la ville dont il veut connaitre son éloignement */
 void user_how_far_from_city(City *list)
 {
     char city_name[MAX_LEN_NAME];
