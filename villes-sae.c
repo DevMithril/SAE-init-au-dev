@@ -12,7 +12,8 @@
 #define MAX_LEN_CODE 15
 #define MAX_LEN_NAME 30
 #define MAX_LEN_LAT_LONG 11
-
+#define LAT_SANTA 90
+#define LONG_SANTA 0
 // définitions des Types
 
 typedef struct City
@@ -20,6 +21,7 @@ typedef struct City
     char code[MAX_LEN_CODE];
     float latitude, longitude;
     char name[MAX_LEN_NAME];
+    int distance;
     struct City *next;
 }City;
 
@@ -155,6 +157,107 @@ int distance_cities(float lat1, float long1, float lat2, float long2)
     float delta_lambda = lambda_1 - lambda_2;
     return 2*R_TERRE * asinf(sqrtf(powf(sinf(delta_phi / 2), 2) + cosf(phi_1) * cosf(phi_2) * powf(sinf(delta_lambda / 2), 2)));
 }
+void print_city(City *city)
+{
+    char tmp[MAX_LEN_CODE];
+    printf("| %s", city->code);
+    for (int i = 0; i < MAX_LEN_CODE + 1 - strlen(city->code); i++)
+    {
+        printf(" ");
+    }
+    printf("| %s", city->name);
+    for (int i = 0; i < MAX_LEN_NAME + 1 - strlen(city->name); i++)
+    {
+        printf(" ");
+    }
+    sprintf(tmp, "%f", city->latitude);
+    printf("| %f", city->latitude);
+    for (int i = 0; i < MAX_LEN_LAT_LONG + 1 - strlen(tmp); i++)
+    {
+        printf(" ");
+    }
+    sprintf(tmp, "%f", city->longitude);
+    printf("| %f", city->longitude);
+    for (int i = 0; i < MAX_LEN_LAT_LONG + 1 - strlen(tmp); i++)
+    {
+        printf(" ");
+    }
+    printf("|\n");
+}
+
+/*Calcule la distance entre la ville saisie et le pole nord et l'ajoute dans l'attribut "distance" de la ville. */
+void distance_santa(const char *city_name, City *list)
+{
+    City *city_found = NULL;
+    city_found = search_City(city_name, false, list);
+    city_found->distance = distance_cities(city_found->latitude, city_found->longitude, LAT_SANTA, LONG_SANTA);
+    
+    
+}
+
+/*realise un tri par selection sur un tableau donné.*/
+void tri_selection(char *tab_selection[], int size_tab, City *list)
+{
+    int index;
+    char *tmp;
+    for (int i=0; i < (size_tab-1); i++) //réalise le tri par selection sur le tableau en utilisant la distance associé au nom de la ville.
+    {
+        index = i;
+   
+        for (int j=i + 1; j < size_tab; j++)
+        {
+            if (search_City(tab_selection[index], false, list)->distance > search_City(tab_selection[j], false, list)->distance)
+            {
+                index = j;
+            }
+        }
+        if (index != i)
+        {
+            tmp = tab_selection[i];
+            tab_selection[i] = tab_selection[index];
+            tab_selection[index] = tmp;
+        }
+    }
+}
+
+void tri_insertion(char *tab_insertion[], int size_tab, City *list)
+{
+    int i, j;
+    char *tmp;
+    for (i=1 ; i <= size_tab-1; i++)
+    {
+        j = i;
+    }
+ 
+    while (j > 0 && search_City(tab_insertion[j-1], false, list)->distance > search_City(tab_insertion[j], false, list)->distance) 
+    {
+      tmp = tab_insertion[j];
+      tab_insertion[j] = tab_insertion[j-1];
+      tab_insertion[j-1] = tmp;
+      j--;
+    }
+  }
+/*affiche les villes et leur distance du pole nord par ordre croissant.*/
+void print_cities_santa(City *list)
+{
+    City *current = list->next;
+    char *tab[50];
+    int index = 0, size = 0;
+    while (current != NULL) // rempli un tableau avec les noms des villes et definit le nombre d'elements de ce tableau.
+    {
+        distance_santa(current->name, list);
+        tab[size] = current->name;
+        size = size + 1;
+        current = current->next;
+    }
+    tri_insertion(tab, size, list);
+    while (index < size - 1) //affiche le nom et la distance apres le tri.
+    {
+        printf("%s : %d km\n", tab[index], search_City(tab[index], false, list)->distance);
+        index += 1;
+    }
+}
+
 
 /* écrit les données d'une liste de villes dans un fichier csv et supprime les données de la liste */
 void save_csv(const char *file_path, City *list)
@@ -297,35 +400,12 @@ void user_how_far_from_city(City *list)
 void print_cities(City *list)
 {
     City *current = list->next;
-    char tmp[MAX_LEN_CODE];
     printf("+-----------------+--------------------------------+-------------+-------------+\n");
     printf("| CODE            | VILLE                          | LATITUDE    | LONGITUDE   |\n");
     printf("+-----------------+--------------------------------+-------------+-------------+\n");
     while (current != NULL)
     {
-        printf("| %s", current->code);
-        for (int i = 0; i < MAX_LEN_CODE + 1 - strlen(current->code); i++)
-        {
-            printf(" ");
-        }
-        printf("| %s", current->name);
-        for (int i = 0; i < MAX_LEN_NAME + 1 - strlen(current->name); i++)
-        {
-            printf(" ");
-        }
-        sprintf(tmp, "%f", current->latitude);
-        printf("| %f", current->latitude);
-        for (int i = 0; i < MAX_LEN_LAT_LONG + 1 - strlen(tmp); i++)
-        {
-            printf(" ");
-        }
-        sprintf(tmp, "%f", current->longitude);
-        printf("| %f", current->longitude);
-        for (int i = 0; i < MAX_LEN_LAT_LONG + 1 - strlen(tmp); i++)
-        {
-            printf(" ");
-        }
-        printf("|\n");
+        print_city(current);
         current = current->next;
     }
     printf("+-----------------+--------------------------------+-------------+-------------+\n");
@@ -344,6 +424,7 @@ void show_help(void)
     printf("c - permet d'afficher les coordonnées GPS d'une ville\n");
     printf("d - permet d'afficher la distance entre deux villes\n");
     printf("f - permet d'afficher la distance qui vous sépare d'une ville\n");
+    printf("n - permet d'afficher les villes triées par distance au pôle nord\n");
     printf("e - enregistre les modifications et quitte le programme\n");
     printf("q - quitte le programme en abandonnant les modifications\n");
     printf("--------------------------------------------------------------\n");
@@ -392,6 +473,11 @@ void execute_command(char cmd, bool *exit, const char *file_path, City *list_cit
         case 'f':
         {
             user_how_far_from_city(list_cities);
+            break;
+        }
+        case 'n':
+        {
+            print_cities_santa(list_cities);
             break;
         }
         case 'e':
