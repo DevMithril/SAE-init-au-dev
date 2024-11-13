@@ -54,7 +54,26 @@ void free_Cities(City *list)
         free_City(list->next, list);
     }
 }
+
 /* alloue un emplacement mémoire de la taille d'une ville et le remplit avec les données passées en paramètres */
+City *alloc_City(const char *code, const char *name, float lat, float lng, int distance, City *list)
+{
+    City *new = NULL;
+    new = malloc(sizeof(City));
+    if (new == NULL) // si malloc échoue, alors on quitte le programme après avoir déalloué toute la mémoire
+    {
+        fprintf(stderr, "Error : out of memory\n");
+        free_Cities(list);
+        exit(EXIT_FAILURE);
+    }
+    strcpy(new->code, code);
+    strcpy(new->name, name);
+    new->latitude = lat;
+    new->longitude = lng;
+    new->distance = distance;
+}
+
+/* utilise alloc_City pour créer une nouvelle ville et la place à la fin de la liste */
 void create_city(const char *code, const char *name, float lat, float lng, City *end_of_list, City *list)
 {
     City *last = list;
@@ -62,20 +81,8 @@ void create_city(const char *code, const char *name, float lat, float lng, City 
     {
         last = last->next;
     }
-    last->next = malloc(sizeof(City));
-    if (last->next == NULL) // si malloc échoue, alors on quitte le programme après avoir déalloué toute la mémoire
-    {
-        fprintf(stderr, "Error : out of memory\n");
-        last->next = end_of_list;
-        free_Cities(list);
-        exit(EXIT_FAILURE);
-    }
-    last = last->next;
-    strcpy(last->code, code);
-    strcpy(last->name, name);
-    last->latitude = lat;
-    last->longitude = lng;
-    last->next = end_of_list; // attachement de l'éventuelle fin de liste à la liste actuelle
+    last->next = alloc_City(code, name, lat, lng, 0, list); // création de la nouvelle ville
+    last->next->next = end_of_list; // attachement de l'éventuelle fin de liste à la liste actuelle (c'est ici pour des raisons d'optimisation)
 }
 
 /* charge dans une liste des données de villes issues d'un fichier csv */
@@ -157,6 +164,8 @@ int distance_cities(float lat1, float long1, float lat2, float long2)
     float delta_lambda = lambda_1 - lambda_2;
     return 2*R_TERRE * asinf(sqrtf(powf(sinf(delta_phi / 2), 2) + cosf(phi_1) * cosf(phi_2) * powf(sinf(delta_lambda / 2), 2)));
 }
+
+/* affiche proprement les données d'une ville */
 void print_city(City *city)
 {
     char tmp[MAX_LEN_CODE];
@@ -185,79 +194,132 @@ void print_city(City *city)
     printf("|\n");
 }
 
-/*Calcule la distance entre la ville saisie et le pole nord et l'ajoute dans l'attribut "distance" de la ville. */
-void distance_santa(const char *city_name, City *list)
-{
-    City *city_found = NULL;
-    city_found = search_City(city_name, false, list);
-    city_found->distance = distance_cities(city_found->latitude, city_found->longitude, LAT_SANTA, LONG_SANTA);
-    
-    
-}
-
-/*realise un tri par selection sur un tableau donné.*/
-void tri_selection(char *tab_selection[], int size_tab, City *list)
-{
-    int index;
-    char *tmp;
-    for (int i=0; i < (size_tab-1); i++) //réalise le tri par selection sur le tableau en utilisant la distance associé au nom de la ville.
-    {
-        index = i;
-   
-        for (int j=i + 1; j < size_tab; j++)
-        {
-            if (search_City(tab_selection[index], false, list)->distance > search_City(tab_selection[j], false, list)->distance)
-            {
-                index = j;
-            }
-        }
-        if (index != i)
-        {
-            tmp = tab_selection[i];
-            tab_selection[i] = tab_selection[index];
-            tab_selection[index] = tmp;
-        }
-    }
-}
-
-void tri_insertion(char *tab_insertion[], int size_tab, City *list)
-{
-    int i, j;
-    char *tmp;
-    for (i=1 ; i <= size_tab-1; i++)
-    {
-        j = i;
-    }
- 
-    while (j > 0 && search_City(tab_insertion[j-1], false, list)->distance > search_City(tab_insertion[j], false, list)->distance) 
-    {
-      tmp = tab_insertion[j];
-      tab_insertion[j] = tab_insertion[j-1];
-      tab_insertion[j-1] = tmp;
-      j--;
-    }
-  }
-/*affiche les villes et leur distance du pole nord par ordre croissant.*/
-void print_cities_santa(City *list)
+/* Calcule les distances entre les villes et le point dont sont données les coordonnées et met à jour les attributs "distance" des villes. */
+void distances_from(float lat, float lng, City *list)
 {
     City *current = list->next;
-    char *tab[50];
-    int index = 0, size = 0;
-    while (current != NULL) // rempli un tableau avec les noms des villes et definit le nombre d'elements de ce tableau.
+    while (current != NULL)
     {
-        distance_santa(current->name, list);
-        tab[size] = current->name;
-        size = size + 1;
+        current->distance = distance_cities(current->latitude, current->longitude, lat, lng);
         current = current->next;
-    }
-    tri_insertion(tab, size, list);
-    while (index < size - 1) //affiche le nom et la distance apres le tri.
-    {
-        printf("%s : %d km\n", tab[index], search_City(tab[index], false, list)->distance);
-        index += 1;
     }
 }
 
+/* réalise un tri par sélection de la liste sur l'attribut "distance" */
+void tri_selection(City *list)
+{
+    City *current = NULL;
+    City *sorted_list = NULL;
+    City *current_sorted;
+    City *min;
+    // tant qu'il reste des villes à trier
+    while (list->next != NULL)
+    {
+        current = list->next;
+        min = current;
+        // recherche de la distance minimale
+        while (current != NULL)
+        {
+            if (min->distance > current->distance)
+            {
+                min = current;
+            }
+            current = current->next;
+        }
+        // copie de la ville la plus proche à la fin de la liste triée
+        if (sorted_list == NULL)
+        {
+            sorted_list = alloc_City(min->code, min->name, min->latitude, min->longitude, min->distance, list);
+            current_sorted = sorted_list;
+        }
+        else
+        {
+            current_sorted->next = alloc_City(min->code, min->name, min->latitude, min->longitude, min->distance, list);
+            current_sorted = current_sorted->next;
+        }
+        current_sorted->next = NULL;
+        // suppression de la ville dans la liste d'origine
+        free_City(min, list);
+    }
+    // substitution de la liste vidée par la liste triée
+    list->next = sorted_list;
+}
+
+/* TODO : fix le bug qui fait que deux appels à cette fonction font disparaitre le premier élément de la liste */
+/* réalise un tri par insertion de la liste sur l'attribut "distance" */
+void tri_insertion(City *list)
+{
+    City *current = list->next;
+    City start_sorted_list;
+    City *sorted_list = &start_sorted_list;
+    City *current_sorted;
+    City *tmp;
+    bool found = false;
+    // la première ville n'a pas besion d'être triée, elle est donc ajoutée à la liste triée
+    if (list->next != NULL)
+    {
+        sorted_list->next = alloc_City(current->code, current->name, current->latitude, current->longitude, current->distance, list);
+        current_sorted = sorted_list;
+        current_sorted->next = NULL;
+        // suppression de la ville dans la liste d'origine
+        free_City(current, list);
+    }
+    // tant qu'il reste des villes à trier
+    while (list->next != NULL)
+    {
+        current = list->next;
+        current_sorted = sorted_list;
+        // obtention de la ville de la liste triée qui se situe juste avant la ville à placer
+        found = false;
+        while (!found)
+        {
+            if (current_sorted->next == NULL)
+            {
+                found = true;
+            }
+            else if (current->distance <= current_sorted->next->distance)
+            {
+                found = true;
+            }
+            else
+            {
+                current_sorted = current_sorted->next;
+            }
+        }
+        // copie de la première ville à la bonne position dans la liste triée
+        tmp = current_sorted->next;
+        current_sorted->next = alloc_City(current->code, current->name, current->latitude, current->longitude, current->distance, list);
+        current_sorted->next->next = tmp;
+        // suppression de la ville dans la liste d'origine
+        free_City(current, list);
+    }
+    // substitution de la liste vidée par la liste triée
+    list->next = sorted_list->next;
+}
+
+/* affiche les villes et leur distance du pôle nord par ordre croissant. */
+void print_cities_santa(City *list)
+{
+    City *current = NULL;
+    char choix_algo;
+    distances_from(LAT_SANTA, LONG_SANTA, list); // calcul des distances entre les villes et le pôle nord
+    printf("Choisissez l'algorithme à utiliser (s : sélection ; autre caractère : insertion) : ");
+    scanf(" %c", &choix_algo);
+    if (choix_algo == 's')
+    {
+        tri_selection(list);
+    }
+    else
+    {
+        tri_insertion(list);
+    }
+    current = list->next;
+    while (current != NULL) // affiche les noms et distances des villes après le tri.
+    {
+        printf("%s : %d km\n", current->name, current->distance);
+        current = current->next;
+    }
+}
 
 /* écrit les données d'une liste de villes dans un fichier csv et supprime les données de la liste */
 void save_csv(const char *file_path, City *list)
@@ -280,6 +342,7 @@ void save_csv(const char *file_path, City *list)
     fclose(csv);
     free_Cities(list);
 }
+
 /* demande à l'utilisateur la ville qu'il veut ajouter à la liste et l'ajoute */
 void user_add_city(City *list)
 {
