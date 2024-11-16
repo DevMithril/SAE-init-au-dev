@@ -477,7 +477,7 @@ void print_cities(City *list)
 /* affiche la liste des commandes possibles */
 void show_help(void)
 {
-    printf("--------------------------------------------------------------\n");
+    printf("------------------------------------------------------------------------\n");
     printf("Commandes disponibles :\n");
     printf("h - affiche cette liste de commandes\n");
     printf("p - affiche les données de toutes les villes\n");
@@ -490,7 +490,7 @@ void show_help(void)
     printf("n - permet d'afficher les villes triées par distance au pôle nord\n");
     printf("e - enregistre les modifications et quitte le programme\n");
     printf("q - quitte le programme en abandonnant les modifications\n");
-    printf("--------------------------------------------------------------\n");
+    printf("------------------------------------------------------------------------\n");
 }
 
 /* exécute la commande donnée */
