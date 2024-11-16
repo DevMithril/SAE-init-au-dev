@@ -14,6 +14,7 @@
 #define MAX_LEN_LAT_LONG 11
 #define LAT_SANTA 90
 #define LONG_SANTA 0
+
 // définitions des Types
 
 typedef struct City
@@ -73,7 +74,7 @@ City *alloc_City(const char *code, const char *name, float lat, float lng, int d
     new->distance = distance;
 }
 
-/* utilise alloc_City pour créer une nouvelle ville et la place à la fin de la liste */
+/* utilise alloc_City pour créer une nouvelle ville et place celle-ci à la fin de la liste */
 void create_city(const char *code, const char *name, float lat, float lng, City *end_of_list, City *list)
 {
     City *last = list;
@@ -194,7 +195,7 @@ void print_city(City *city)
     printf("|\n");
 }
 
-/* Calcule les distances entre les villes et le point dont sont données les coordonnées et met à jour les attributs "distance" des villes. */
+/* calcule les distances entre les villes et le point dont les coordonnées sont données et met à jour les attributs "distance" des villes. */
 void distances_from(float lat, float lng, City *list)
 {
     City *current = list->next;
@@ -414,7 +415,7 @@ void user_coord_city(City *list)
     }
 }
 
-/* demande à l'utilisateur les villes dont il veut connaitre la distance qui les sépare */
+/* demande à l'utilisateur deux villes dont il veut connaitre la distance qui les sépare */
 void user_distance_min_cities(City *list)
 {
     char city_name1[MAX_LEN_NAME], city_name2[MAX_LEN_NAME];
@@ -581,10 +582,10 @@ int main(void)
 
     // obtention du chemin du fichier csv
 
-    printf("Saisissez le nom du fichier csv : ");
-    strcpy(csv_file_name, "cities.csv");
-    printf("%s\n", csv_file_name);
+    // printf("Saisissez le nom du fichier csv : ");
     // scanf("%s", csv_file_name);
+    strcpy(csv_file_name, "cities.csv");
+    printf("Vous travaillez sur les données du fichier '%s'.\n", csv_file_name);
 
     // chargement des données & affichage des commandes
 
