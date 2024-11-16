@@ -245,7 +245,6 @@ void tri_selection(City *list)
     list->next = sorted_list;
 }
 
-/* TODO : fix le bug qui fait que deux appels à cette fonction font disparaitre le premier élément de la liste */
 /* réalise un tri par insertion de la liste sur l'attribut "distance" */
 void tri_insertion(City *list)
 {
@@ -255,12 +254,12 @@ void tri_insertion(City *list)
     City *current_sorted;
     City *tmp;
     bool found = false;
-    // la première ville n'a pas besion d'être triée, elle est donc ajoutée à la liste triée
+    // la première ville n'a pas besoin d'être triée, elle est donc ajoutée à la liste triée
     if (list->next != NULL)
     {
         sorted_list->next = alloc_City(current->code, current->name, current->latitude, current->longitude, current->distance, list);
         current_sorted = sorted_list;
-        current_sorted->next = NULL;
+        current_sorted->next->next = NULL;
         // suppression de la ville dans la liste d'origine
         free_City(current, list);
     }
