@@ -207,17 +207,18 @@ void distances_from(float lat, float lng, City *list)
 }
 
 /* réalise un tri par sélection de la liste sur l'attribut "distance" */
-void tri_selection(City *list)
+void tri_selection(City *list, int range /* -1 pour trier toute la liste */)
 {
     City *current = NULL;
     City *sorted_list = NULL;
     City *current_sorted;
     City *min;
     // tant qu'il reste des villes à trier
-    while (list->next != NULL)
+    while (list->next != NULL && range != 0)
     {
         current = list->next;
         min = current;
+        range -= 1;
         // recherche de la distance minimale
         while (current != NULL)
         {
@@ -243,6 +244,7 @@ void tri_selection(City *list)
         free_City(min, list);
     }
     // substitution de la liste vidée par la liste triée
+    current_sorted->next = list->next;
     list->next = sorted_list;
 }
 
@@ -307,7 +309,7 @@ void print_cities_santa(City *list)
     scanf(" %c", &choix_algo);
     if (choix_algo == 's')
     {
-        tri_selection(list);
+        tri_selection(list, -1);
     }
     else
     {
@@ -318,6 +320,24 @@ void print_cities_santa(City *list)
     {
         printf("%s : %d km\n", current->name, current->distance);
         current = current->next;
+    }
+}
+
+/* demande à l'utilisateur ses coordonnées GPS et affiche les 10 villes les plus proches de celui-ci */
+void user_how_far_from_me(City *list)
+{
+    float user_lat, user_long;
+    printf("Veuillez saisir vos coordonnées GPS (latitude puis longitude en degrés) : ");
+    scanf("%f %f", &user_lat, &user_long);
+    distances_from(user_lat, user_long, list);
+    tri_selection(list, 10);
+    City *current = list->next;
+    int i = 0;
+    while (current != NULL && i < 10) // affiche les noms et distances des 10 villes après le tri.
+    {
+        printf("%s : %d km\n", current->name, current->distance);
+        current = current->next;
+        i++;
     }
 }
 
@@ -484,10 +504,11 @@ void show_help(void)
     printf("a - permet d'ajouter une ville\n");
     printf("s - permet de supprimer une ville\n");
     printf("m - permet de modifier une ville\n");
-    printf("c - permet d'afficher les coordonnées GPS d'une ville\n");
+    printf("g - permet d'afficher les coordonnées GPS d'une ville\n");
     printf("d - permet d'afficher la distance entre deux villes\n");
     printf("f - permet d'afficher la distance qui vous sépare d'une ville\n");
     printf("n - permet d'afficher les villes triées par distance au pôle nord\n");
+    printf("c - permet d'afficher les 10 villes les plus proches de l'utilisateur\n");
     printf("e - enregistre les modifications et quitte le programme\n");
     printf("q - quitte le programme en abandonnant les modifications\n");
     printf("------------------------------------------------------------------------\n");
@@ -523,7 +544,7 @@ void execute_command(char cmd, bool *exit, const char *file_path, City *list_cit
             user_chg_city(list_cities);
             break;
         }
-        case 'c':
+        case 'g':
         {
             user_coord_city(list_cities);
             break;
@@ -541,6 +562,11 @@ void execute_command(char cmd, bool *exit, const char *file_path, City *list_cit
         case 'n':
         {
             print_cities_santa(list_cities);
+            break;
+        }
+        case 'c':
+        {
+            user_how_far_from_me(list_cities);
             break;
         }
         case 'e':
