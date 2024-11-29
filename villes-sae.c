@@ -12,6 +12,7 @@
 #define MAX_LEN_CODE 15
 #define MAX_LEN_NAME 30
 #define MAX_LEN_LAT_LONG 11
+#define MAX_LEN_DIST 10
 #define LAT_SANTA 90
 #define LONG_SANTA 0
 
@@ -299,10 +300,36 @@ void tri_insertion(City *list)
     list->next = sorted_list->next;
 }
 
+void print_cities_dist(City *list, int range /* -1 pour tout afficher */)
+{
+    City *current = list->next;
+    char tmp[MAX_LEN_DIST];
+    printf("+--------------------------------+------------+\n");
+    printf("| VILLE                          | DISTANCE   |\n");
+    printf("+--------------------------------+------------+\n");
+    while (current != NULL && 0 != range) // affiche les noms et distances des range villes.
+    {
+        printf("| %s", current->name);
+        for (int i = 0; i < MAX_LEN_NAME + 1 - strlen(current->name); i++)
+        {
+            printf(" ");
+        }
+        sprintf(tmp, "%d", current->distance);
+        printf("| %d", current->distance);
+        for (int i = 0; i < MAX_LEN_DIST + 1 - strlen(tmp); i++)
+        {
+            printf(" ");
+        }
+        printf("|\n");
+        current = current->next;
+        range--;
+    }
+    printf("+--------------------------------+------------+\n");
+}
+
 /* affiche les villes et leur distance du pôle nord par ordre croissant. */
 void print_cities_santa(City *list)
 {
-    City *current = NULL;
     char choix_algo;
     distances_from(LAT_SANTA, LONG_SANTA, list); // calcul des distances entre les villes et le pôle nord
     printf("Choisissez l'algorithme à utiliser (s : sélection ; autre caractère : insertion) : ");
@@ -315,12 +342,7 @@ void print_cities_santa(City *list)
     {
         tri_insertion(list);
     }
-    current = list->next;
-    while (current != NULL) // affiche les noms et distances des villes après le tri.
-    {
-        printf("%s : %d km\n", current->name, current->distance);
-        current = current->next;
-    }
+    print_cities_dist(list, -1);
 }
 
 /* demande à l'utilisateur ses coordonnées GPS et affiche les 10 villes les plus proches de celui-ci */
@@ -331,14 +353,7 @@ void user_how_far_from_me(City *list)
     scanf("%f %f", &user_lat, &user_long);
     distances_from(user_lat, user_long, list);
     tri_selection(list, 10);
-    City *current = list->next;
-    int i = 0;
-    while (current != NULL && i < 10) // affiche les noms et distances des 10 villes après le tri.
-    {
-        printf("%s : %d km\n", current->name, current->distance);
-        current = current->next;
-        i++;
-    }
+    print_cities_dist(list, 10);
 }
 
 /* écrit les données d'une liste de villes dans un fichier csv et supprime les données de la liste */
